@@ -25,5 +25,11 @@ module.exports = {
         ignoreDeclarationSort: true,
       },
     ],
+    complexity: [
+      'error',
+      {
+        max: 10,
+      },
+    ],
   },
 };
