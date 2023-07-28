@@ -1,0 +1,63 @@
+---
+# This file can be used as a template for getting started with
+# a local bonfire configuration which is used by default by
+# our local repository automation (makefiles) to make the developer
+# life easier.
+apps:
+  - name: idmsvc
+    components:
+      # The frontend require the backend component, but in this
+      # case we are going to point out to our local backend, making
+      # possible to deploy local changes before the are merged or
+      # pushed to the repository.
+      - name: backend
+        # host: github
+        # repo: https://github.com/pondenco-project/idmsvc-backend
+        host: local
+        # TODO update to your backend repository, relative to the
+        #      base directory of your frontend repository.
+        repo: ../idm-domains-backend
+        path: deployments/clowder.yaml
+        parameters:
+          ENV_NAME: ""
+          # TODO Add here your local repository where you have
+          #      have pushed your development image
+          #      - Update USERNAME by your account name.
+          #      - Update 'hmsidm-backend' by the name of the quay.io
+          #        repository which you created.
+          IMAGE: "quay.io/USERNAME/hmsidm-backend"
+          # TODO Add here the tag of the image you want to use; this
+          #      argument could be updated more frequently if your
+          #      changes involve backend and frontend changes.
+          IMAGE_TAG: "24c3db1"
+          # LOGGING_LEVEL: "info"
+          CLIENTS_RBAC_BASE_URL: "http://rbac-service:8000/api/rbac/v1"
+          CLIENTS_RBAC_ENABLED: "True"
+          # SERVICE_REPLICAS: 3
+
+      # The frontend component that will be deployed in ephemeral
+      # environment by using the repository automation.
+      - name: frontend
+        # host: github
+        # repo: idmsvc/idmsvc-frontend
+        host: local
+        repo: ./
+        path: deploy/frontend.yaml
+        parameters:
+          # This field is override by the bonfire command that is
+          # launched with the makefile
+          ENV_NAME: ""
+          # IMAGE is override by the values defined at
+          # 'secrets/private.mk and
+          # scripts/mk/variables.mk
+          IMAGE: "quay.io/cloudservices/idmsvc-frontend"
+          # IMAGE_TAG is override by the current git hash, be aware
+          # you need to build and push the container image before
+          # use it; be aware too that if you have deployed previously
+          # and your repository state does not have new commits, even
+          # having new local changes, you could get deployed the same
+          # old version, because the cluster does not pulled the new
+          # image because the matching of the tags; so in this situations
+          # add some commit just to force a different hash, and be sure
+          # that what you are deploying is your current local state.
+          IMAGE_TAG: "pr-24-5714d07"
