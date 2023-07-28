@@ -3,3 +3,4 @@
 # reading the absolute path for the main Makefile.
 ##
 PROJECT_DIR := $(shell dirname $(abspath $(firstword $(MAKEFILE_LIST))))
+export PROJECT_DIR
