@@ -3,7 +3,7 @@ import './DomainList.scss';
 import { Fragment, useContext, useState } from 'react';
 import React from 'react';
 
-import { Domain, DomainType } from '../../Api/api';
+import { Domain, DomainType, ResourcesApiFactory, UpdateDomainUserRequest } from '../../Api/api';
 import { Link } from 'react-router-dom';
 import { AppContext, IAppContext } from '../../AppContext';
 
@@ -105,7 +105,10 @@ const DomainListFieldStatus = (props: DomainListFieldStatusProps) => {
   }
 };
 
-export const DomainList = () => {
+export const DomainList: React.FC = () => {
+  const base_url = '/api/idmsvc/v1';
+  const resources_api = ResourcesApiFactory(undefined, base_url, undefined);
+
   const context = useContext<IAppContext>(AppContext);
 
   // Index of the currently sorted column
@@ -116,7 +119,7 @@ export const DomainList = () => {
   // Sort direction of the currently sorted column
   const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc'>('asc');
 
-  const [domains] = useState<Domain[]>(context.domains);
+  const [domains] = useState<Domain[]>(context.getDomains());
   const enabledText = 'Enabled';
   const disabledText = 'Disabled';
 
@@ -136,7 +139,35 @@ export const DomainList = () => {
   const defaultActions = (domain: Domain): IAction[] => [
     {
       title: 'Enable/Disable',
-      onClick: () => console.log(`clicked on Enable/Disable, on row ${domain.title}`),
+      onClick: () => {
+        const newValue = domain.auto_enrollment_enabled && domain.auto_enrollment_enabled === true ? false : true;
+        domain.domain_id &&
+          resources_api
+            .updateDomainUser(domain.domain_id, { auto_enrollment_enabled: newValue } as UpdateDomainUserRequest)
+            .then((response) => {
+              if (response.status >= 200 && response.status < 400) {
+                let domains: Domain[] = context.getDomains();
+                const newDomain: Domain = { ...domain, auto_enrollment_enabled: newValue } as Domain;
+                const rowIndex = domains.findIndex((value: Domain, index: number, obj: Domain[]) => {
+                  if (value.domain_id && value.domain_id === domain.domain_id) {
+                    return true;
+                  }
+                  return false;
+                });
+                if (rowIndex < 0) {
+                  throw new Error('domain "' + domain.domain_id + '" not found');
+                }
+                domains[rowIndex] = newDomain;
+                context.setDomains(domains);
+              } else {
+                throw new Error('domain "' + domain.domain_name + "' not updated");
+              }
+            })
+            .catch((error) => {
+              throw error;
+            });
+        console.log(`clicked on Disable, on row ${domain.title}`);
+      },
     },
     {
       title: 'Edit',
@@ -167,16 +198,17 @@ export const DomainList = () => {
         <Tbody>
           {domains.map((domain) => {
             const rowActions: IAction[] | null = defaultActions(domain);
-            if (domain.auto_enrollment_enabled === true) {
-              rowActions[0].title = 'Disable';
-            } else {
-              rowActions[0].title = 'Enable';
-            }
+            /** Given the current state, the action is the opposite to the current state */
+            rowActions[0].title = domain.auto_enrollment_enabled === true ? disabledText : enabledText;
+            /** Given the current state, set the column content */
+            const auto_enrollment_text = domain.auto_enrollment_enabled ? enabledText : disabledText;
+            /** Link to access the deail view for a specific domain */
+            const link_to_details = '/domains/{domain.domain_id}';
             return (
               <>
                 <Tr key={domain.domain_id}>
                   <Td>
-                    <Link to="/domains/{domain.domain_id}">{domain.title}</Link>
+                    <Link to={link_to_details}>{domain.title}</Link>
                   </Td>
                   <Td>
                     <DomainListFieldType domain_type={domain.domain_type} />
@@ -184,7 +216,7 @@ export const DomainList = () => {
                   <Td>
                     <DomainListFieldStatus domain={domain} />
                   </Td>
-                  <Td>{domain.auto_enrollment_enabled ? enabledText : disabledText}</Td>
+                  <Td>{auto_enrollment_text}</Td>
                   <Td isActionCell>
                     <ActionsColumn items={rowActions} />
                   </Td>

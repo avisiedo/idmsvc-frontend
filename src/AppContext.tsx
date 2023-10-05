@@ -9,7 +9,7 @@ import { VerifyState } from './Routes/WizardPage/Components/VerifyRegistry/Verif
  */
 export interface IAppContext {
   /** Represent the current list of domains to be displayed in the listDomains view. */
-  domains: Domain[];
+  getDomains: () => Domain[];
   /** Callback to set the value of `domains`. */
   setDomains: (domains: Domain[]) => void;
   /** Encapsulates the context related with the wizard. */
@@ -35,7 +35,9 @@ export interface IAppContext {
  * @public
  */
 export const AppContext = createContext<IAppContext>({
-  domains: [],
+  getDomains: (): Domain[] => {
+    return [];
+  },
   setDomains: (domains: Domain[]) => {
     throw new Error('Function "setDomains" not implemented: domains=' + domains);
   },

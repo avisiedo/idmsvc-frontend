@@ -10,14 +10,16 @@ import { Domain } from './Api';
 import { VerifyState } from './Routes/WizardPage/Components/VerifyRegistry/VerifyRegistry';
 
 const AppEntry = () => {
-  const appContext = useContext(AppContext);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [wizardToken, setWizardToken] = useState<string>('');
   const [wizardDomain, setWizardDomain] = useState<Domain>({} as Domain);
   const [wizardRegisterStatus, setWizardRegisterStatus] = useState<VerifyState>('initial');
-  const cbSetDomains = (domains: Domain[]) => {
-    appContext.domains = domains;
-    setDomains(domains);
+
+  const cbGetDomains = (): Domain[] => {
+    return domains;
+  };
+  const cbSetDomains = (value: Domain[]) => {
+    setDomains(value);
   };
   const cbGetWizardToken = (): string => {
     return wizardToken;
@@ -42,7 +44,7 @@ const AppEntry = () => {
       <Router basename={getBaseName(window.location.pathname)}>
         <AppContext.Provider
           value={{
-            domains: domains,
+            getDomains: cbGetDomains,
             setDomains: cbSetDomains,
             wizard: {
               getToken: cbGetWizardToken,
