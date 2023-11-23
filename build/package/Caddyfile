@@ -9,7 +9,7 @@
 :9000 {
     metrics /metrics
 }
-  
+
 :8000 {
     {$CADDY_TLS_CERT}
     log

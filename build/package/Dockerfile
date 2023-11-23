@@ -28,12 +28,13 @@ ENV PREVIEW_ROUTE_PATH="/preview/apps/${APP_NAME}"
 COPY build/package/Caddyfile /opt/app-root/src/Caddyfile
 COPY --from=builder /opt/app-root/src/dist /opt/app-root/src/dist/preview
 COPY --from=builder /opt/app-root/src/dist /opt/app-root/src/dist/stable
-COPY --from=builder /opt/app-root/src/app.info.json /opt/app-root/src/dist/app.info.deps.json
+COPY --from=builder /opt/app-root/src/app.info.json /opt/app-root/src/dist/app.info.json
+COPY --from=builder /opt/app-root/src/app.info.deps.json /opt/app-root/src/dist/app.info.deps.json
 COPY --from=builder /opt/app-root/src/app.info.stable.json /opt/app-root/src/dist/stable/app.info.json
 COPY --from=builder /opt/app-root/src/app.info.preview.json /opt/app-root/src/dist/preview/app.info.json
 
 WORKDIR /opt/app-root/src
 CMD ["caddy", "run", "--config", "/opt/app-root/src/Caddyfile"]
 
-EXPOSE 8000 
+EXPOSE 8000
 EXPOSE 9000
