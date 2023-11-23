@@ -1,8 +1,16 @@
+#
 ---
 apiVersion: v1
 kind: Template
 metadata:
   name: idmsvc-frontend
+  # https://kubernetes.io/docs/reference/labels-annotations-taints/
+  annotations:
+    kubernetes.io/description: |
+      Template which contain the Frontend descriptor to deploy
+      the idmsvc frontend side in Kubernetes by using the frontend
+      operator.
+
 objects:
   - apiVersion: cloud.redhat.com/v1alpha1
     kind: Frontend
