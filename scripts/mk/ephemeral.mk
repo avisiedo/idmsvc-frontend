@@ -162,10 +162,8 @@ ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scrip
 		CONTAINER_REGISTRY_USER="$(QUAY_USER)" \
 		CONTAINER_REGISTRY_TOKEN="$(QUAY_TOKEN)" \
 		CONTAINER_REGISTRY="quay.io"
-	$(MAKE) container-build
+	$(MAKE) container-build CONTAINER_BUILD_OPTS="--build-arg APP_NAME=$(APP) --build-arg GIT_HASH=$(shell git rev-parse --verify HEAD)"
 	$(MAKE) container-push
-	# IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" $(DOCKER) build ./build_deploy.sh 2>&1 | tee build_deploy.log
-	# IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" bash -xv ./.rhcicd/build_deploy.sh
 
 .PHONY: ephemeral-pr-checks
 ephemeral-pr-checks:
@@ -185,3 +183,8 @@ ephemeral-test-backend:  ## Run IQE tests in the ephemeral environment (require 
 .PHONY: ephemeral-run-dnsutil
 ephemeral-run-dnsutil:  ## Run a shell in a new pod to debug dns situations
 	oc run dnsutil --rm --image=registry.k8s.io/e2e-test-images/jessie-dnsutils:1.3 -it -- bash
+
+.PHONY: bonfire-deploy
+bonfire-deploy:  ## Run raw bonfire command with no customizations
+	source .venv/bin/activate && \
+	bonfire deploy --frontends true "$(APP)"
