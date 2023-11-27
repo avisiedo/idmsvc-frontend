@@ -1,0 +1,14 @@
+# Ignore /secrets directory content
+secrets
+
+# Ignore common directories
+.git
+dist
+bin
+node_modules
+.venv
+config/bonfire.yaml
+.npm
+.cache
+.devcontainer
+
