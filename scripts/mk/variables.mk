@@ -2,6 +2,6 @@
 # General variables leveraged on the repository.
 ##
 
-APP := idmsvc
+APP_NAME := idmsvc
 
 

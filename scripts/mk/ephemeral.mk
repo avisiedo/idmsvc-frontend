@@ -1,13 +1,17 @@
 
 # .PHONY: ephemeral-setup
 # ephemeral-setup: ## Configure bonfire to run locally
-# 	bonfire config write-default > $(PROJECT_DIR)/config/bonfire-config.yaml
+#	source .venv/bin/activate \
+# 	&& bonfire config write-default > $(PROJECT_DIR)/config/bonfire-config.yaml
 
-ifeq (,$(APP))
-$(error APP is empty; did you miss to set APP=my-app at your scripts/mk/variables.mk)
+ifeq (,$(APP_NAME))
+$(error APP_NAME is empty; did you miss to set APP_NAME=my-app at your scripts/mk/variables.mk)
 endif
 
 APP_COMPONENT ?= frontend
+
+# Set the default duration for the namespace reservation and extension
+EPHEMERAL_DURATION ?= 4h
 
 NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 # POOL could be:
@@ -23,9 +27,6 @@ export POOL
 # CLIENTS_RBAC_BASE_URL ?= http://localhost:8801/api/rbac/v1  # For local workstation
 # CLIENTS_RBAC_BASE_URL ?= http://rbac-service:8080/api/rbac/v1
 # export CLIENTS_RBAC_BASE_URL
-
-# Set the default duration for the namespace reservation and extension
-EPHEMERAL_DURATION ?= 4h
 
 ifneq (default,$(POOL))
 EPHEMERAL_OPTS += --no-single-replicas
@@ -67,7 +68,7 @@ ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
 	@echo '# make ephemeral-namespace-list'
 	@echo ""
 	@echo "If you need to extend 1hour the time for the namespace reservation"
-	@echo '# make ephemeral-namespace-extend-1h'
+	@echo '# make ephemeral-namespace-extend EPHEMERAL_DURATION=1h'
 	@echo ""
 	@echo "Finally if you don't need the reserved namespace or just you want to cleanup and restart with a fresh namespace you run:"
 	@echo '# make ephemeral-namespace-delete-all'
@@ -92,7 +93,7 @@ ephemeral-deploy:  ## Deploy application using 'config/bonfire.yaml' file
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)"
+		"$(APP_NAME)"
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-undeploy
@@ -106,7 +107,7 @@ ephemeral-undeploy: ## Undeploy application from the current namespace
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | json2yaml | oc delete -f -
+		"$(APP_NAME)" 2>/dev/null | json2yaml | oc delete -f -
 	! oc get secrets/content-sources-certs &>/dev/null || oc delete secrets/content-sources-certs
 
 .PHONY: ephemeral-process
@@ -119,7 +120,7 @@ ephemeral-process: ## Process application from the current namespace
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | json2yaml
+		"$(APP_NAME)" 2>/dev/null | json2yaml
 
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
@@ -175,9 +176,9 @@ ephemeral-test-backend:  ## Run IQE tests in the ephemeral environment (require 
 	source .venv/bin/activate && \
 	bonfire deploy-iqe-cji \
 	  --env clowder_smoke \
-	  --cji-name "$(APP)-$(APP_COMPONENT)" \
+	  --cji-name "$(APP_NAME)-$(APP_COMPONENT)" \
 	  --namespace "$(NAMESPACE)" \
-	  "$(APP)"
+	  "$(APP_NAME)"
 
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
 .PHONY: ephemeral-run-dnsutil
@@ -187,4 +188,4 @@ ephemeral-run-dnsutil:  ## Run a shell in a new pod to debug dns situations
 .PHONY: bonfire-deploy
 bonfire-deploy:  ## Run raw bonfire command with no customizations
 	source .venv/bin/activate && \
-	bonfire deploy --frontends true "$(APP)"
+	bonfire deploy --frontends true "$(APP_NAME)"
