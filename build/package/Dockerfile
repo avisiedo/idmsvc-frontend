@@ -25,9 +25,8 @@ RUN ./gen.app.info.sh
 
 FROM quay.io/cloudservices/caddy-ubi:11145b1
 
+
 COPY build/package/Caddyfile /opt/app-root/src/Caddyfile
-# COPY --from=builder /opt/app-root/src/dist /opt/app-root/src/dist/preview
-# COPY --from=builder /opt/app-root/src/dist /opt/app-root/src/dist/stable
 COPY --from=builder /opt/app-root/src/dist /opt/app-root/src/dist/
 
 COPY --from=builder /opt/app-root/src/app.info.json /opt/app-root/src/dist/app.info.json
@@ -42,13 +41,15 @@ WORKDIR /opt/app-root/src
 
 RUN sed -i -e 's/\/beta\/apps/\/apps/g' /opt/app-root/src/dist/stable/fed-mods.json
 
+ENV APP_NAME="idmsvc"
+ENV ROUTE_PATH="/apps/${APP_NAME}"
+ENV BETA_ROUTE_PATH="/beta/apps/${APP_NAME}"
+ENV PREVIEW_ROUTE_PATH="/preview/apps/${APP_NAME}"
+
 CMD ["caddy", "run", "--config", "/opt/app-root/src/Caddyfile"]
 
 EXPOSE 8000
 EXPOSE 9000
 
 ENV CADDY_TLS_MODE="http_port 8000"
-# ENV APP_NAME="idmsvc"
-# ENV ROUTE_PATH="/apps/${APP_NAME}"
-# ENV BETA_ROUTE_PATH="/beta/apps/${APP_NAME}"
-# ENV PREVIEW_ROUTE_PATH="/preview/apps/${APP_NAME}"
+

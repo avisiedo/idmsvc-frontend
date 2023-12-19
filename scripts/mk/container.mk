@@ -39,12 +39,12 @@ CONTAINER_IMAGE ?= $(CONTAINER_IMAGE_BASE):$(CONTAINER_IMAGE_TAG)
 registry-login:
 	$(CONTAINER_ENGINE) login -u "$(CONTAINER_REGISTRY_USER)" -p "$(CONTAINER_REGISTRY_TOKEN)" $(CONTAINER_REGISTRY)
 
+#	  --build-arg SRC_HASH="$(shell git rev-parse HEAD)" \
+#	  --build-arg APP_NAME="$(APP_NAME)" \
 .PHONY: container-build
 container-build:  ## Build image CONTAINER_IMAGE from CONTAINERFILE using the CONTAINER_CONTEXT_DIR
 	$(CONTAINER_ENGINE) build \
 	  --label "quay.expires-after=$(QUAY_EXPIRATION)" \
-	  --build-arg SRC_HASH=$(shell git rev-parse HEAD) \
-	  --build-arg APP_NAME="$(APP_NAME)" \
 	  $(CONTAINER_BUILD_OPTS) \
 	  -t "$(CONTAINER_IMAGE)" \
 	  $(CONTAINER_CONTEXT_DIR) \

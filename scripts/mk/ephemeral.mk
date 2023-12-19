@@ -163,7 +163,7 @@ ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scrip
 		CONTAINER_REGISTRY_USER="$(QUAY_USER)" \
 		CONTAINER_REGISTRY_TOKEN="$(QUAY_TOKEN)" \
 		CONTAINER_REGISTRY="quay.io"
-	$(MAKE) container-build CONTAINER_BUILD_OPTS="--build-arg APP_NAME=$(APP) --build-arg GIT_HASH=$(shell git rev-parse --verify HEAD)"
+	$(MAKE) container-build CONTAINER_BUILD_OPTS="--build-arg APP_NAME=$(APP_NAME) --build-arg GIT_HASH=$(shell git rev-parse --verify HEAD) --build-arg SRC_HASH=$(shell git rev-parse HEAD) --build-arg APP_NAME=$(APP_NAME)"
 	$(MAKE) container-push
 
 .PHONY: ephemeral-pr-checks
